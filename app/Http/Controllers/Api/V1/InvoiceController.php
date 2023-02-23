@@ -1,10 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Requests\StoreInvoiceRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
+use App\Http\Controllers\Controller;
 use App\Models\Invoice;
+use App\Http\Resources\V1\InvoiceResource;
+use App\Http\Resources\V1\InvoiceCollection;
 
 class InvoiceController extends Controller
 {
@@ -13,15 +16,7 @@ class InvoiceController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        return new InvoiceCollection(Invoice::paginate(10));
     }
 
     /**
@@ -37,15 +32,7 @@ class InvoiceController extends Controller
      */
     public function show(Invoice $invoice)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Invoice $invoice)
-    {
-        //
+        return new InvoiceResource($invoice);
     }
 
     /**
