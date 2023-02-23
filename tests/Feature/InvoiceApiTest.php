@@ -43,10 +43,13 @@ class InvoiceApiTest extends TestCase
         $response
             ->assertStatus(200)
             ->assertJson(fn (AssertableJson $json) =>
-                $json->where('data.id', $invoice->id)
-                     ->where('data.customerId', $invoice->customer->id)
-                     ->where('data.amount', $invoice->amount)
-                     ->etc()
+                $json->has('data', fn (AssertableJson $json) =>
+                    $json->where('id', $invoice->id)
+                         ->where('customerId', $invoice->customer->id)
+                         ->where('amount', $invoice->amount)
+                         ->where('status', $invoice->status)
+                         ->etc()
+                )
             );
     }
 }

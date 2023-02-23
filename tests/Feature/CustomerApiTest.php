@@ -2,8 +2,6 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
-
 use App\Models\Customer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -44,10 +42,12 @@ class CustomerApiTest extends TestCase
         $response
             ->assertStatus(200)
             ->assertJson(fn (AssertableJson $json) =>
-                $json->where('data.id', $customer->id)
-                     ->where('data.name', $customer->name)
-                     ->where('data.postalCode', $customer->postal_code)
-                     ->etc()
+                $json->has('data', fn (AssertableJson $json) =>
+                    $json->where('id', $customer->id)
+                         ->where('name', $customer->name)
+                         ->where('postalCode', $customer->postal_code)
+                         ->etc()
+                )
             );
     }
 }
