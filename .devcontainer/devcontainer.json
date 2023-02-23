@@ -9,13 +9,16 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
+				"onecentlin.laravel-extension-pack"
 				// "mikestead.dotenv",
 				// "amiralizadeh9480.laravel-extra-intellisense",
 				// "ryannaddy.laravel-artisan",
 				// "onecentlin.laravel5-snippets",
 				// "onecentlin.laravel-blade"
 			],
-			"settings": {}
+			"settings": {
+				"php.format.codeStyle": "PSR-2"
+			}
 		}
 	},
 	"remoteUser": "sail",
