@@ -9,7 +9,8 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"onecentlin.laravel-extension-pack"
+				"onecentlin.laravel-extension-pack",
+                "bmewburn.vscode-intelephense-client"
 				// "mikestead.dotenv",
 				// "amiralizadeh9480.laravel-extra-intellisense",
 				// "ryannaddy.laravel-artisan",
