@@ -24,7 +24,7 @@ class InvoiceController extends Controller
         if (count($eloQueries) == 0) {
             return new InvoiceCollection(Invoice::paginate(10));
         } else {
-            return new InvoiceCollection(Invoice::where($eloQueries)->paginate(10));
+            return new InvoiceCollection(Invoice::where($eloQueries)->paginate(10)->withQueryString());
         }
     }
 

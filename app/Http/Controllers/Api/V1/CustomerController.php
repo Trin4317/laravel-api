@@ -26,7 +26,7 @@ class CustomerController extends Controller
             // and transform every records in the way CustomerResource defined
             return new CustomerCollection(Customer::paginate(10));
         } else {
-            return new CustomerCollection(Customer::where($eloQueries)->paginate(10));
+            return new CustomerCollection(Customer::where($eloQueries)->paginate(10)->withQueryString());
         }
     }
 
