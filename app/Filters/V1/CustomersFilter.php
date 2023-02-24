@@ -21,10 +21,10 @@ class CustomersFilter extends ApiFilter
     ];
 
     protected $operatorMap = [
-        'eq' => '=',
-        'gt' => '>',
+        'eq'  => '=',
+        'gt'  => '>',
         'gte' => '>=',
-        'lt' => '<',
+        'lt'  => '<',
         'lte' => '<='
     ];
 }
