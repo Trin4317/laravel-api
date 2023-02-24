@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Customer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Arr;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Tests\TestCase;
 
@@ -138,5 +139,39 @@ class CustomerApiTest extends TestCase
                          ->etc()
                     )->has('data.invoices', 10)
             );
+    }
+
+    public function test_user_can_create_new_customer(): void
+    {
+        $customer = Customer::factory()->raw();
+        $customer = Arr::add($customer, 'postalCode', $customer['postal_code']);
+        Arr::forget($customer, 'postal_code');
+
+        $response = $this->postJson('/api/v1/customers/', $customer);
+
+        $response
+            ->assertStatus(201)
+            ->assertJson(fn (AssertableJson $json) =>
+                $json->has('data', fn (AssertableJson $json) =>
+                    $json->where('name', $customer['name'])
+                    ->where('type', $customer['type'])
+                    ->where('postalCode', $customer['postalCode'])
+                    ->etc()
+                )
+            );
+    }
+
+    public function test_user_can_not_create_new_customer_when_failing_validation(): void
+    {
+        $customer = Customer::factory()->raw();
+        $customer = Arr::add($customer, 'postalCode', $customer['postal_code']);
+        Arr::forget($customer, 'postal_code');
+        Arr::forget($customer, 'name');
+
+        $response = $this->postJson('/api/v1/customers/', $customer);
+
+        $response
+            ->assertStatus(422)
+            ->assertJsonValidationErrorFor('name', 'errors');
     }
 }
