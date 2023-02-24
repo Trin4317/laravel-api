@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Http\Resources\V1\CustomerResource;
 use App\Http\Resources\V1\CustomerCollection;
-use App\Services\V1\CustomerQuery;
+use App\Filters\V1\CustomersFilter;
 
 class CustomerController extends Controller
 {
@@ -17,7 +17,8 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        $filter = new CustomerQuery();
+        // TODO: use DI and don't pass request object directly
+        $filter = new CustomersFilter();
         $eloQueries = $filter->transform(request());
 
         if (count($eloQueries) == 0) {
