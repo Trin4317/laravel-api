@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Http\Resources\V1\InvoiceResource;
 use App\Http\Resources\V1\InvoiceCollection;
+use App\Filters\V1\InvoicesFilter;
 
 class InvoiceController extends Controller
 {
@@ -16,7 +17,15 @@ class InvoiceController extends Controller
      */
     public function index()
     {
-        return new InvoiceCollection(Invoice::paginate(10));
+        // TODO: use DI and don't pass request object directly
+        $filter = new InvoicesFilter();
+        $eloQueries = $filter->transform(request());
+
+        if (count($eloQueries) == 0) {
+            return new InvoiceCollection(Invoice::paginate(10));
+        } else {
+            return new InvoiceCollection(Invoice::where($eloQueries)->paginate(10)->withQueryString());
+        }
     }
 
     /**

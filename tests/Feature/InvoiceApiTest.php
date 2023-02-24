@@ -34,6 +34,56 @@ class InvoiceApiTest extends TestCase
             );
     }
 
+    public function test_user_can_filter_invoices_with_one_condition(): void
+    {
+        Invoice::factory(20)->create([
+            'amount' => 10000
+        ]);
+
+        $invoiceWithBigAmount = Invoice::factory()->create([
+            'amount' => 50000
+        ]);
+
+        $response = $this->getJson('/api/v1/invoices?amount[gt]=30000');
+
+        $response
+            ->assertStatus(200)
+            ->assertJson(fn (AssertableJson $json) =>
+                $json->has('meta')
+                     ->has('links')
+                     ->has('data', 1)
+                     ->has('data.0', fn (AssertableJson $json) =>
+                        $json->where('id', $invoiceWithBigAmount->id)
+                             ->where('amount', $invoiceWithBigAmount->amount)
+                             ->where('customerId', $invoiceWithBigAmount->customer_id)
+                             ->etc()
+                )
+            );
+    }
+
+    public function test_user_can_filter_invoices_with_many_conditions(): void
+    {
+        Invoice::factory(20)->create([
+            'amount' => 10000,
+            'status' => 'B'
+        ]);
+
+        Invoice::factory(2)->create([
+            'amount' => 50000,
+            'status' => 'P'
+        ]);
+
+        $response = $this->getJson('/api/v1/invoices?amount[gt]=30000&status[eq]=P');
+
+        $response
+            ->assertStatus(200)
+            ->assertJson(fn (AssertableJson $json) =>
+                $json->has('meta')
+                     ->has('links')
+                     ->has('data', 2)
+            );
+    }
+
     public function test_user_can_get_specific_invoice(): void
     {
         $invoice = Invoice::factory()->create();
