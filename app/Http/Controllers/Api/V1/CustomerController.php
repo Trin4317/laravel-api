@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Http\Resources\V1\CustomerResource;
 use App\Http\Resources\V1\CustomerCollection;
+use App\Services\V1\CustomerQuery;
 
 class CustomerController extends Controller
 {
@@ -16,9 +17,16 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        // Note: CustomerCollection will assume CustomerResource is available
-        // and transform every records in the way CustomerResource defined
-        return new CustomerCollection(Customer::paginate(10));
+        $filter = new CustomerQuery();
+        $eloQueries = $filter->transform(request());
+
+        if (count($eloQueries) == 0) {
+            // Note: CustomerCollection will assume CustomerResource is available
+            // and transform every records in the way CustomerResource defined
+            return new CustomerCollection(Customer::paginate(10));
+        } else {
+            return new CustomerCollection(Customer::where($eloQueries)->paginate(10));
+        }
     }
 
     /**
