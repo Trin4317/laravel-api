@@ -21,13 +21,14 @@ class CustomerController extends Controller
         $filter = new CustomersFilter();
         $eloQueries = $filter->transform(request());
 
-        if (count($eloQueries) == 0) {
-            // Note: CustomerCollection will assume CustomerResource is available
-            // and transform every records in the way CustomerResource defined
-            return new CustomerCollection(Customer::paginate(10));
-        } else {
-            return new CustomerCollection(Customer::where($eloQueries)->paginate(10)->withQueryString());
+        $includeInvoices = request()->query('includeInvoices');
+        $customers = Customer::where($eloQueries);
+
+        if ($includeInvoices) {
+            $customers = $customers->with('invoices');
         }
+
+        return new CustomerCollection($customers->paginate(10)->withQueryString());
     }
 
     /**
