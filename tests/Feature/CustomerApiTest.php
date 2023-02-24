@@ -83,6 +83,25 @@ class CustomerApiTest extends TestCase
             );
     }
 
+    public function test_user_can_get_all_customers_with_invoces_included(): void
+    {
+        Customer::factory()
+            ->count(20)
+            ->hasInvoices(10)
+            ->create();
+
+        $response = $this->getJson('/api/v1/customers?includeInvoices=true');
+
+        $response
+            ->assertStatus(200)
+            ->assertJson(fn (AssertableJson $json) =>
+                $json->has('meta')
+                     ->has('links')
+                     ->has('data', 10)
+                     ->has('data.0.invoices', 10)
+            );
+    }
+
     public function test_user_can_get_specific_customer(): void
     {
         $customer = Customer::factory()->create();
@@ -98,6 +117,26 @@ class CustomerApiTest extends TestCase
                          ->where('postalCode', $customer->postal_code)
                          ->etc()
                 )
+            );
+    }
+
+    public function test_user_can_get_specific_customer_with_invoces_included(): void
+    {
+        $customer = Customer::factory()
+                            ->hasInvoices(10)
+                            ->create();
+
+        $response = $this->getJson('/api/v1/customers/' . $customer->id . '?includeInvoices=true');
+
+        $response
+            ->assertStatus(200)
+            ->assertJson(fn (AssertableJson $json) =>
+                $json->has('data', fn (AssertableJson $json) =>
+                    $json->where('id', $customer->id)
+                         ->where('name', $customer->name)
+                         ->where('postalCode', $customer->postal_code)
+                         ->etc()
+                    )->has('data.invoices', 10)
             );
     }
 }
