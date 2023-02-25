@@ -15,6 +15,8 @@ class CustomerApiTest extends TestCase
 
     public function test_user_can_get_all_customers(): void
     {
+        $this->logInWithAbilities(['none']);
+
         $customers = Customer::factory(20)->create();
 
         $response = $this->getJson('/api/v1/customers');
@@ -36,6 +38,8 @@ class CustomerApiTest extends TestCase
 
     public function test_user_can_filter_customers_with_one_condition(): void
     {
+        $this->logInWithAbilities(['none']);
+
         Customer::factory(20)->create([
             'postal_code' => '10000'
         ]);
@@ -63,6 +67,8 @@ class CustomerApiTest extends TestCase
 
     public function test_user_can_filter_customers_with_many_conditions(): void
     {
+        $this->logInWithAbilities(['none']);
+
         Customer::factory(20)->create([
             'postal_code' => '10000',
             'type' => 'I'
@@ -86,6 +92,8 @@ class CustomerApiTest extends TestCase
 
     public function test_user_can_get_all_customers_with_invoces_included(): void
     {
+        $this->logInWithAbilities(['none']);
+
         Customer::factory()
             ->count(20)
             ->hasInvoices(10)
@@ -105,6 +113,8 @@ class CustomerApiTest extends TestCase
 
     public function test_user_can_get_specific_customer(): void
     {
+        $this->logInWithAbilities(['none']);
+
         $customer = Customer::factory()->create();
 
         $response = $this->getJson('/api/v1/customers/' . $customer->id);
@@ -123,6 +133,8 @@ class CustomerApiTest extends TestCase
 
     public function test_user_can_get_specific_customer_with_invoces_included(): void
     {
+        $this->logInWithAbilities(['none']);
+
         $customer = Customer::factory()
                             ->hasInvoices(10)
                             ->create();
@@ -143,6 +155,8 @@ class CustomerApiTest extends TestCase
 
     public function test_user_can_create_new_customer(): void
     {
+        $this->logInWithAbilities(['create']);
+
         $customer = Customer::factory()->raw();
         $customer = Arr::add($customer, 'postalCode', $customer['postal_code']);
         Arr::forget($customer, 'postal_code');
@@ -163,6 +177,8 @@ class CustomerApiTest extends TestCase
 
     public function test_user_can_not_create_new_customer_when_failing_validation(): void
     {
+        $this->logInWithAbilities(['create']);
+
         $customer = Customer::factory()->raw();
         $customer = Arr::add($customer, 'postalCode', $customer['postal_code']);
         Arr::forget($customer, 'postal_code');
@@ -177,6 +193,8 @@ class CustomerApiTest extends TestCase
 
     public function test_user_can_update_existing_customer(): void
     {
+        $this->logInWithAbilities(['update']);
+
         $customer = Customer::factory()
                              ->create()
                              ->makeHidden(['postal_code', 'updated_at', 'created_at'])
@@ -202,6 +220,8 @@ class CustomerApiTest extends TestCase
 
     public function test_user_can_not_update_existing_customer_without_providing_full_attributes(): void
     {
+        $this->logInWithAbilities(['update']);
+
         $customer = Customer::factory()
                              ->create()
                              ->makeHidden(['name', 'updated_at', 'created_at'])
@@ -216,6 +236,8 @@ class CustomerApiTest extends TestCase
 
     public function test_user_can_patch_existing_customer(): void
     {
+        $this->logInWithAbilities(['update']);
+
         $customer = Customer::factory()
                              ->create()
                              ->makeHidden(['type', 'address', 'state', 'postal_code', 'updated_at', 'created_at'])
