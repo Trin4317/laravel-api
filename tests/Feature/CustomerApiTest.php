@@ -174,4 +174,64 @@ class CustomerApiTest extends TestCase
             ->assertStatus(422)
             ->assertJsonValidationErrorFor('name', 'errors');
     }
+
+    public function test_user_can_update_existing_customer(): void
+    {
+        $customer = Customer::factory()
+                             ->create()
+                             ->makeHidden(['postal_code', 'updated_at', 'created_at'])
+                             ->toArray();
+
+        Arr::set($customer, 'name', 'John Doe');
+        Arr::set($customer, 'type', 'I');
+        Arr::set($customer, 'email', 'john@example.com');
+        Arr::set($customer, 'city', 'New York');
+        $customer = Arr::add($customer, 'postalCode', '70000');
+
+        $response = $this->putJson('/api/v1/customers/' . $customer['id'], $customer);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('customers', [
+            'name'        => 'John Doe',
+            'type'        => 'I',
+            'email'       => 'john@example.com',
+            'city'        => 'New York',
+            'postal_code' => '70000'
+        ]);
+    }
+
+    public function test_user_can_not_update_existing_customer_without_providing_full_attributes(): void
+    {
+        $customer = Customer::factory()
+                             ->create()
+                             ->makeHidden(['name', 'updated_at', 'created_at'])
+                             ->toArray();
+
+        $response = $this->putJson('/api/v1/customers/' . $customer['id'], $customer);
+
+        $response
+            ->assertStatus(422)
+            ->assertJsonValidationErrorFor('name', 'errors');
+    }
+
+    public function test_user_can_patch_existing_customer(): void
+    {
+        $customer = Customer::factory()
+                             ->create()
+                             ->makeHidden(['type', 'address', 'state', 'postal_code', 'updated_at', 'created_at'])
+                             ->toArray();
+
+        Arr::set($customer, 'name', 'John Doe');
+        Arr::set($customer, 'email', 'john@example.com');
+        Arr::set($customer, 'city', 'New York');
+
+        $response = $this->patchJson('/api/v1/customers/' . $customer['id'], $customer);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('customers', [
+            'name'        => 'John Doe',
+            'email'       => 'john@example.com',
+            'city'        => 'New York'
+        ]);
+    }
 }
