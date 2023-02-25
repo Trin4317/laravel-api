@@ -16,6 +16,8 @@ class InvoiceApiTest extends TestCase
 
     public function test_user_can_get_all_invoices(): void
     {
+        $this->logInWithAbilities(['none']);
+
         $invoices = Invoice::factory(20)->create();
 
         $response = $this->getJson('/api/v1/invoices');
@@ -38,6 +40,8 @@ class InvoiceApiTest extends TestCase
 
     public function test_user_can_filter_invoices_with_one_condition(): void
     {
+        $this->logInWithAbilities(['none']);
+
         Invoice::factory(20)->create([
             'amount' => 10000
         ]);
@@ -65,6 +69,8 @@ class InvoiceApiTest extends TestCase
 
     public function test_user_can_filter_invoices_with_many_conditions(): void
     {
+        $this->logInWithAbilities(['none']);
+
         Invoice::factory(20)->create([
             'amount' => 10000,
             'status' => 'B'
@@ -88,6 +94,8 @@ class InvoiceApiTest extends TestCase
 
     public function test_user_can_get_specific_invoice(): void
     {
+        $this->logInWithAbilities(['none']);
+
         $invoice = Invoice::factory()->create();
 
         $response = $this->getJson('/api/v1/invoices/' . $invoice->id);
@@ -107,6 +115,8 @@ class InvoiceApiTest extends TestCase
 
     public function test_user_can_bulk_insert_many_invoices(): void
     {
+        $this->logInWithAbilities(['create']);
+
         $invoices = Invoice::factory(3)->raw();
         $invoices = collect($invoices)->map(function ($arr, $key) {
             $arr = Arr::add($arr, 'customerId', $arr['customer_id']);
@@ -129,6 +139,8 @@ class InvoiceApiTest extends TestCase
 
     public function test_user_can_not_bulk_insert_many_invoices_without_providing_full_attributes(): void
     {
+        $this->logInWithAbilities(['create']);
+
         $invoices = Invoice::factory(2)->raw();
 
         $response = $this->postJson('/api/v1/invoices/bulk', $invoices);
