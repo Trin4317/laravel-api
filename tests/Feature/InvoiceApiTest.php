@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Invoice;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Arr;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Tests\TestCase;
 
@@ -101,5 +103,41 @@ class InvoiceApiTest extends TestCase
                          ->etc()
                 )
             );
+    }
+
+    public function test_user_can_bulk_insert_many_invoices(): void
+    {
+        $invoices = Invoice::factory(3)->raw();
+        $invoices = collect($invoices)->map(function ($arr, $key) {
+            $arr = Arr::add($arr, 'customerId', $arr['customer_id']);
+            $arr = Arr::add($arr, 'billedDate', $arr['billed_date']->format('Y-m-d H:i:s'));
+            $arr = Arr::add($arr, 'paidDate', $arr['paid_date']?->format('Y-m-d H:i:s'));
+
+            return Arr::except($arr, ['customer_id', 'billed_date', 'paid_date']);
+        });
+
+        $response = $this->postJson('/api/v1/invoices/bulk', $invoices->toArray());
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('invoices', [
+            'customer_id' => $invoices[0]['customerId'],
+            'amount'      => $invoices[0]['amount'],
+            'status'      => $invoices[0]['status'],
+            'billed_date' => $invoices[0]['billedDate'],
+        ]);
+    }
+
+    public function test_user_can_not_bulk_insert_many_invoices_without_providing_full_attributes(): void
+    {
+        $invoices = Invoice::factory(2)->raw();
+
+        $response = $this->postJson('/api/v1/invoices/bulk', $invoices);
+
+        $response
+            ->assertStatus(422)
+            ->assertJsonValidationErrorFor('0.customerId', 'errors')
+            ->assertJsonValidationErrorFor('0.billedDate', 'errors')
+            ->assertJsonValidationErrorFor('1.customerId', 'errors')
+            ->assertJsonValidationErrorFor('1.billedDate', 'errors');
     }
 }
