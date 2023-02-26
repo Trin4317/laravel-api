@@ -21,6 +21,14 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::group([
+    'namespace' => 'App\Http\Controllers\Auth',
+], function() {
+    Route::post('register', 'AuthController@register');
+    Route::post('login', 'AuthController@login');
+    Route::post('logout', 'AuthController@logout')->middleware('auth:sanctum');
+});
+
+Route::group([
     'prefix'     => 'v1',
     'namespace'  => 'App\Http\Controllers\Api\V1',
     'middleware' => 'auth:sanctum'
