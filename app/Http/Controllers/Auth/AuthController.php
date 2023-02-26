@@ -21,7 +21,7 @@ class AuthController extends Controller
         ]);
 
         return response()->json([
-            'user'  => $user->makeHidden(['id', 'created_at', 'updated_at']),
+            'user'  => $user->setVisible(['name', 'email']),
             'token' => $user->createToken('basic_token', ['none'])->plainTextToken
         ]);
     }
