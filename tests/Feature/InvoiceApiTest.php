@@ -152,4 +152,32 @@ class InvoiceApiTest extends TestCase
             ->assertJsonValidationErrorFor('1.customerId', 'errors')
             ->assertJsonValidationErrorFor('1.billedDate', 'errors');
     }
+
+    public function test_user_can_delete_existing_invoice(): void
+    {
+        $this->logInWithAbilities(['delete']);
+
+        $invoice = Invoice::factory()->create();
+
+        $response = $this->deleteJson('/api/v1/invoices/' . $invoice->id);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseMissing('invoices', [
+            'id' => $invoice->id
+        ]);
+    }
+
+    public function test_user_can_not_delete_existing_invoice_without_correct_token_ability(): void
+    {
+        $this->logInWithAbilities(['none']);
+
+        $invoice = Invoice::factory()->create();
+
+        $response = $this->deleteJson('/api/v1/invoices/' . $invoice->id);
+
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('invoices', [
+            'id' => $invoice->id
+        ]);
+    }
 }
