@@ -66,6 +66,12 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
-        //
+        // Note: DELETE request does not have body like GET request, so it does not make sense to create a Form Request class
+        // Hence, we authorize the user's action here
+        if (!request()->user()->tokenCan('delete')) {
+            abort(403);
+        }
+
+        $customer->delete();
     }
 }
