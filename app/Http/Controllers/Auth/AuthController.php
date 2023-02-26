@@ -51,4 +51,7 @@ class AuthController extends Controller
             'message' => 'Logged out.'
         ]);
     }
+
+    // TODO: allow generating token with 'create', 'update', 'delete' abilities
+    // and remove dummy /generate-token web route
 }
