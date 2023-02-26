@@ -256,4 +256,32 @@ class CustomerApiTest extends TestCase
             'city'        => 'New York'
         ]);
     }
+
+    public function test_user_can_delete_existing_customer(): void
+    {
+        $this->logInWithAbilities(['delete']);
+
+        $customer = Customer::factory()->create();
+
+        $response = $this->deleteJson('/api/v1/customers/' . $customer->id);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseMissing('customers', [
+            'id' => $customer->id
+        ]);
+    }
+
+    public function test_user_can_not_delete_existing_customer_without_correct_token_ability(): void
+    {
+        $this->logInWithAbilities(['none']);
+
+        $customer = Customer::factory()->create();
+
+        $response = $this->deleteJson('/api/v1/customers/' . $customer->id);
+
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('customers', [
+            'id' => $customer->id
+        ]);
+    }
 }
