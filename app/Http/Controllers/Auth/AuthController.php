@@ -8,6 +8,7 @@ use App\Http\Requests\Auth\StoreUserRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -32,7 +33,9 @@ class AuthController extends Controller
                  ->safe()
                  ->only(['email', 'password'])
             )) {
-            abort(401, 'Credentials do not match.');
+            throw ValidationException::withMessages([
+                'credentials' => 'The provided credentials do not match our records.'
+            ]);
         }
 
         $user = User::whereEmail($request->email)->first();

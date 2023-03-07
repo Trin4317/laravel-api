@@ -97,7 +97,7 @@ class AuthenticationTest extends TestCase
             'password' => 'wrong-password'
         ]);
 
-        $response->assertStatus(401);
+        $response->assertStatus(422);
     }
 
     public function test_user_can_logout(): void
