@@ -26,11 +26,13 @@ class AuthenticationTest extends TestCase
         $response
             ->assertStatus(200)
             ->assertJson(fn (AssertableJson $json) =>
-                $json->has('token')
-                     ->has('user', fn (AssertableJson $json) =>
-                        $json->where('name', $credentials['name'])
-                             ->where('email', $credentials['email'])
-                )
+                $json->has('data', fn (AssertableJson $json) =>
+                    $json->has('token')
+                         ->has('user', fn (AssertableJson $json) =>
+                            $json->where('name', $credentials['name'])
+                                 ->where('email', $credentials['email'])
+                        )
+                    )->has('message')
             );
     }
 
@@ -47,7 +49,9 @@ class AuthenticationTest extends TestCase
 
         $response
             ->assertStatus(422)
-            ->assertJsonValidationErrorFor('password', 'errors');
+            ->assertJsonPath('error.message', fn (string $message) =>
+                str_contains($message, 'password')
+            );
     }
 
     public function test_user_can_not_register_when_using_existing_email(): void
@@ -65,7 +69,9 @@ class AuthenticationTest extends TestCase
 
         $response
             ->assertStatus(422)
-            ->assertJsonValidationErrorFor('email', 'errors');
+            ->assertJsonPath('error.message', fn (string $message) =>
+                str_contains($message, 'email')
+            );
     }
 
     public function test_user_can_login_with_correct_credentials(): void
@@ -80,11 +86,13 @@ class AuthenticationTest extends TestCase
         $response
             ->assertStatus(200)
             ->assertJson(fn (AssertableJson $json) =>
-                $json->has('token')
-                     ->has('user', fn (AssertableJson $json) =>
-                        $json->where('name', $user->name)
-                             ->where('email', $user->email)
-                )
+                $json->has('data', fn (AssertableJson $json) =>
+                    $json->has('token')
+                         ->has('user', fn (AssertableJson $json) =>
+                            $json->where('name', $user->name)
+                                 ->where('email', $user->email)
+                        )
+                    )->has('message')
             );
     }
 
