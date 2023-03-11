@@ -8,6 +8,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
@@ -67,9 +68,18 @@ class Handler extends ExceptionHandler
             return $this->errorResponse('Method not allowed.', 405);
         });
 
+        $this->renderable(function (ValidationException $e, Request $request) {
+            return $this->errorResponse($e->getMessage(), 422);
+        });
+
         $this->renderable(function (Throwable $e, Request $request) {
-            Log::error($e->getMessage());
-            return $this->errorResponse('Unexpected error.', 500);
+            if (! $e instanceof AuthenticationException) {
+                Log::error([
+                    'Exception' => get_class($e),
+                    'Message' => $e->getMessage()
+                ]);
+                return $this->errorResponse('Unexpected error.', 500);
+            }
         });
     }
 
