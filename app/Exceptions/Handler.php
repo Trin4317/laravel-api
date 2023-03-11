@@ -2,14 +2,20 @@
 
 namespace App\Exceptions;
 
-use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
+use App\Traits\ApiResponser;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
 class Handler extends ExceptionHandler
 {
+    use ApiResponser;
+
     /**
      * A list of exception types with their corresponding custom log levels.
      *
@@ -49,20 +55,29 @@ class Handler extends ExceptionHandler
         });
 
         // check Illuminate\Foundation\Exceptions\Handler::prepareException to see Exception -> Rendering relations
-        $this->renderable(function (NotFoundHttpException $e, Request $request) {
-            if ($request->is('api/*')) {
-                return response()->json([
-                    'message' => 'Record not found.'
-                ], 404);
-            }
+        $this->renderable(function (AccessDeniedHttpException $e, Request $request) {
+            return $this->errorResponse('Action not allowed.', 403);
         });
 
-        $this->renderable(function (AccessDeniedHttpException $e, Request $request) {
-            if ($request->is('api/*')) {
-                return response()->json([
-                    'message' => 'Action not allowed.'
-                ], 403);
-            }
+        $this->renderable(function (NotFoundHttpException $e, Request $request) {
+            return $this->errorResponse('Record not found.', 404);
         });
+
+        $this->renderable(function (MethodNotAllowedHttpException $e, Request $request) {
+            return $this->errorResponse('Method not allowed.', 405);
+        });
+
+        $this->renderable(function (Throwable $e, Request $request) {
+            Log::error($e->getMessage());
+            return $this->errorResponse('Unexpected error.', 500);
+        });
+    }
+
+    // Override unauthenticated method
+    protected function unauthenticated($request, AuthenticationException $exception)
+    {
+        return $this->shouldReturnJson($request, $exception)
+                    ? $this->errorResponse('Unauthenticated.', 401)
+                    : redirect()->guest($exception->redirectTo() ?? route('login'));
     }
 }
