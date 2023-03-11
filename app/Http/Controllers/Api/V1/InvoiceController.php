@@ -11,6 +11,7 @@ use App\Http\Resources\V1\InvoiceResource;
 use App\Http\Resources\V1\InvoiceCollection;
 use App\Filters\V1\InvoicesFilter;
 use Illuminate\Support\Arr;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class InvoiceController extends Controller
 {
@@ -76,7 +77,7 @@ class InvoiceController extends Controller
         // Note: DELETE request does not have body like GET request, so it does not make sense to create a Form Request class
         // Hence, we authorize the user's action here
         if (!request()->user()->tokenCan('delete')) {
-            abort(403);
+            throw new AuthorizationException;
         }
 
         $invoice->delete();

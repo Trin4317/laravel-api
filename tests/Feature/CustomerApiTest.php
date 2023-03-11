@@ -188,7 +188,9 @@ class CustomerApiTest extends TestCase
 
         $response
             ->assertStatus(422)
-            ->assertJsonValidationErrorFor('name', 'errors');
+            ->assertJsonPath('error.message', fn (string $message) =>
+                str_contains($message, 'The name field')
+            );
     }
 
     public function test_user_can_update_existing_customer(): void
@@ -231,7 +233,9 @@ class CustomerApiTest extends TestCase
 
         $response
             ->assertStatus(422)
-            ->assertJsonValidationErrorFor('name', 'errors');
+            ->assertJsonPath('error.message', fn (string $message) =>
+                str_contains($message, 'The name field')
+            );
     }
 
     public function test_user_can_patch_existing_customer(): void
