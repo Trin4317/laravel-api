@@ -9,6 +9,7 @@ use App\Models\Customer;
 use App\Http\Resources\V1\CustomerResource;
 use App\Http\Resources\V1\CustomerCollection;
 use App\Filters\V1\CustomersFilter;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class CustomerController extends Controller
 {
@@ -69,7 +70,7 @@ class CustomerController extends Controller
         // Note: DELETE request does not have body like GET request, so it does not make sense to create a Form Request class
         // Hence, we authorize the user's action here
         if (!request()->user()->tokenCan('delete')) {
-            abort(403);
+            throw new AuthorizationException;
         }
 
         $customer->delete();
