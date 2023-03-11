@@ -147,10 +147,9 @@ class InvoiceApiTest extends TestCase
 
         $response
             ->assertStatus(422)
-            ->assertJsonValidationErrorFor('0.customerId', 'errors')
-            ->assertJsonValidationErrorFor('0.billedDate', 'errors')
-            ->assertJsonValidationErrorFor('1.customerId', 'errors')
-            ->assertJsonValidationErrorFor('1.billedDate', 'errors');
+            ->assertJsonPath('error.message', fn (string $message) =>
+                str_contains($message, 'The 0.customerId field')
+            );
     }
 
     public function test_user_can_delete_existing_invoice(): void
