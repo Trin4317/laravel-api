@@ -2,33 +2,33 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use Illuminate\Http\Request;
+use App\Models\Invoice;
+use App\Services\InvoiceService;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\StoreInvoiceRequest;
 use App\Http\Requests\V1\BulkStoreInvoiceRequest;
 use App\Http\Requests\V1\UpdateInvoiceRequest;
-use App\Http\Controllers\Controller;
-use App\Models\Invoice;
 use App\Http\Resources\V1\InvoiceResource;
 use App\Http\Resources\V1\InvoiceCollection;
-use App\Filters\V1\InvoicesFilter;
-use Illuminate\Support\Arr;
-use Illuminate\Auth\Access\AuthorizationException;
 
 class InvoiceController extends Controller
 {
+    private $invoiceService;
+
+    public function __construct(InvoiceService $invoiceService)
+    {
+        $this->invoiceService = $invoiceService;
+    }
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // TODO: use DI and don't pass request object directly
-        $filter = new InvoicesFilter();
-        $eloQueries = $filter->transform(request());
+        $invoiceList = $this->invoiceService->all($request);
 
-        if (count($eloQueries) == 0) {
-            return new InvoiceCollection(Invoice::paginate(10));
-        } else {
-            return new InvoiceCollection(Invoice::where($eloQueries)->paginate(10)->withQueryString());
-        }
+        return new InvoiceCollection($invoiceList);
     }
 
     /**
@@ -44,13 +44,7 @@ class InvoiceController extends Controller
      */
     public function bulkStore(BulkStoreInvoiceRequest $request)
     {
-        // Note: Eloquent does not provide createMany method, so we use insert method instead
-        // Limitations: https://laraveldaily.com/post/eloquent-create-query-builder-insert
-        $bulk = collect($request->all())->map(function ($arr, $key) {
-            return Arr::except($arr, ['customerId', 'billedDate', 'paidDate']);
-        });
-
-        Invoice::insert($bulk->toArray());
+        $this->invoiceService->createMany($request);
     }
 
     /**
@@ -72,14 +66,8 @@ class InvoiceController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Invoice $invoice)
+    public function destroy(Request $request, Invoice $invoice)
     {
-        // Note: DELETE request does not have body like GET request, so it does not make sense to create a Form Request class
-        // Hence, we authorize the user's action here
-        if (!request()->user()->tokenCan('delete')) {
-            throw new AuthorizationException;
-        }
-
-        $invoice->delete();
+        $this->invoiceService->delete($request, $invoice);
     }
 }
