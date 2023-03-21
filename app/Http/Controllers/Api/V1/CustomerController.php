@@ -2,34 +2,32 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use Illuminate\Http\Request;
+use App\Models\Customer;
+use App\Services\CustomerService;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\StoreCustomerRequest;
 use App\Http\Requests\V1\UpdateCustomerRequest;
-use App\Http\Controllers\Controller;
-use App\Models\Customer;
 use App\Http\Resources\V1\CustomerResource;
 use App\Http\Resources\V1\CustomerCollection;
-use App\Filters\V1\CustomersFilter;
-use Illuminate\Auth\Access\AuthorizationException;
 
 class CustomerController extends Controller
 {
+    private $customerService;
+
+    public function __construct(CustomerService $customerService)
+    {
+        $this->customerService = $customerService;
+    }
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // TODO: use DI and don't pass request object directly
-        $filter = new CustomersFilter();
-        $eloQueries = $filter->transform(request());
+        $customerList = $this->customerService->all($request);
 
-        $includeInvoices = request()->query('includeInvoices');
-        $customers = Customer::where($eloQueries);
-
-        if ($includeInvoices) {
-            $customers = $customers->with('invoices');
-        }
-
-        return new CustomerCollection($customers->paginate(10)->withQueryString());
+        return new CustomerCollection($customerList);
     }
 
     /**
@@ -37,19 +35,17 @@ class CustomerController extends Controller
      */
     public function store(StoreCustomerRequest $request)
     {
-        return new CustomerResource(Customer::create($request->all()));
+        $customer = $this->customerService->create($request);
+
+        return new CustomerResource($customer);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Customer $customer)
+    public function show(Request $request, Customer $customer)
     {
-        $includeInvoices = request()->query('includeInvoices');
-
-        if ($includeInvoices) {
-            return new CustomerResource($customer->loadMissing('invoices'));
-        }
+        $customer = $this->customerService->get($request, $customer);
 
         return new CustomerResource($customer);
     }
@@ -59,20 +55,14 @@ class CustomerController extends Controller
      */
     public function update(UpdateCustomerRequest $request, Customer $customer)
     {
-        $customer->update($request->all());
+        $this->customerService->update($request, $customer);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Customer $customer)
+    public function destroy(Request $request, Customer $customer)
     {
-        // Note: DELETE request does not have body like GET request, so it does not make sense to create a Form Request class
-        // Hence, we authorize the user's action here
-        if (!request()->user()->tokenCan('delete')) {
-            throw new AuthorizationException;
-        }
-
-        $customer->delete();
+        $this->customerService->delete($request, $customer);
     }
 }
